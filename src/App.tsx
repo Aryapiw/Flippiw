@@ -13,7 +13,6 @@ import { sound } from './utils/audio';
 import { Navbar } from './components/Navbar';
 import { BottleFlipHero } from './components/BottleFlipHero';
 import { CaseStudiesSection } from './components/CaseStudiesSection';
-import { RulesSection } from './components/RulesSection';
 import { Footer } from './components/Footer';
 import { WinnerAnnouncementModal } from './components/WinnerAnnouncementModal';
 import { PresentationSlideMode } from './components/PresentationSlideMode';
@@ -434,9 +433,6 @@ export function App() {
           selectedList={selectedList}
           onOpenPresentation={handleOpenPresentation}
         />
-
-        {/* 3. Rules & Guidelines Section */}
-        <RulesSection />
       </main>
 
       {/* Neobrutalism Footer */}

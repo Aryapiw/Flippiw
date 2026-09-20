@@ -62,12 +62,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             📊 5 Studi Kasus
           </a>
-          <a
-            href="#aturan"
-            className="px-3 py-1.5 text-xs font-black uppercase font-mono bg-white border-2 border-black shadow-[2px_2px_0px_#000] hover:bg-[#A3E635] hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
-          >
-            📋 Aturan Main
-          </a>
         </div>
 
         {/* Interactive Action Controls */}
