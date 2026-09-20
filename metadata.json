@@ -1,0 +1,6 @@
+{
+  "name": "Flip Challenge — Studi Kasus APBN 2026",
+  "description": "Website presentasi interaktif Flip Challenge bertema neobrutalisme dengan simulasi bottle flip untuk memilih siswa secara acak dan 5 studi kasus kebijakan ekonomi APBN 2026.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
