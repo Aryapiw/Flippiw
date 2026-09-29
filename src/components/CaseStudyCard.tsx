@@ -77,7 +77,7 @@ export const CaseStudyCard: React.FC<CaseStudyCardProps> = ({
           <div className="bg-[#FFFDF5] border-2 border-black p-4 shadow-[2px_2px_0px_#000]">
             <span className="text-[11px] font-mono font-black uppercase text-black/80 block mb-1.5 flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-black" />
-              <span>Ringkasan Kasus APBN 2026:</span>
+              <span>Kasus APBN 2026</span>
             </span>
             <p className="text-sm text-black leading-relaxed font-semibold">
               {caseStudy.content}
