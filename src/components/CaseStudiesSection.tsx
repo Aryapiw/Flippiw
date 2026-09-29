@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BookOpen, MonitorPlay, Sparkles, Filter, CheckCircle2 } from 'lucide-react';
 import { CaseStudy, SelectedHistoryItem } from '../types';
 import { CaseStudyCard } from './CaseStudyCard';
+import { AnimatedReveal } from './AnimatedReveal';
 import { sound } from '../utils/audio';
 
 interface CaseStudiesSectionProps {
@@ -24,71 +25,88 @@ export const CaseStudiesSection: React.FC<CaseStudiesSectionProps> = ({
     : caseStudies.filter((c) => c.category === selectedCategory);
 
   return (
-    <section id="studi-kasus" className="w-full py-12 border-t-4 border-black bg-[#FFFDF5]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="studi-kasus" className="w-full py-14 border-t-4 border-black bg-[#FFFDF5] relative overflow-hidden">
+      
+      {/* Decorative Neo Dots Background */}
+      <div className="absolute inset-0 bg-neo-dots opacity-20 pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#00F0FF] border-2 border-black shadow-[3px_3px_0px_#000] text-black font-mono font-black text-xs uppercase tracking-wider mb-2">
-              <BookOpen className="w-4 h-4" />
-              <span>MATERI PRESENTASI & ANALISIS KELAS</span>
+        {/* Section Header with Lazy Pop-In */}
+        <AnimatedReveal animation="pop-in" duration={450}>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-[#00F0FF] border-2 border-black shadow-[3px_3px_0px_#000] text-black font-mono font-black text-xs uppercase tracking-wider mb-2 animate-float-badge">
+                <BookOpen className="w-4 h-4" />
+                <span>MATERI PRESENTASI & ANALISIS KELAS</span>
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-black font-mono uppercase text-black">
+                5 STUDI KASUS APBN 2026
+              </h2>
+              <p className="text-sm text-black/70 font-bold max-w-xl mt-1">
+                Topik kebijakan fiskal strategis yang akan dipaparkan dan diperdebatkan oleh 5 siswa terpilih dari bottle flip challenge.
+              </p>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-black font-mono uppercase text-black">
-              5 STUDI KASUS APBN 2026
-            </h2>
-            <p className="text-sm text-black/70 font-medium max-w-xl mt-1">
-              Topik kebijakan fiskal strategis yang akan dipaparkan dan diperdebatkan oleh 5 siswa terpilih dari bottle flip challenge.
-            </p>
-          </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              sound.playClick();
-              onOpenPresentation(1);
-            }}
-            className="self-start md:self-auto flex items-center gap-2 px-5 py-3 bg-[#FFE600] hover:bg-[#FFF066] text-black font-mono font-black text-sm uppercase border-3 border-black shadow-[4px_4px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 transition-all"
-          >
-            <MonitorPlay className="w-5 h-5" />
-            <span>MULAI PRESENTASI SLIDE (1 - 5)</span>
-          </button>
-        </div>
-
-        {/* Category Filters */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-6 custom-scrollbar">
-          <span className="text-xs font-mono font-black uppercase text-black/60 flex items-center gap-1 mr-1">
-            <Filter className="w-3.5 h-3.5" />
-            <span>FILTER:</span>
-          </span>
-          {categories.map((cat) => (
             <button
-              key={cat}
               type="button"
               onClick={() => {
                 sound.playClick();
-                setSelectedCategory(cat);
+                onOpenPresentation(1);
               }}
-              className={`px-3 py-1.5 text-xs font-mono font-black uppercase border-2 border-black transition-all whitespace-nowrap ${
-                selectedCategory === cat
-                  ? 'bg-black text-white shadow-[2px_2px_0px_#FFE600]'
-                  : 'bg-white text-black hover:bg-gray-100 shadow-[2px_2px_0px_#000]'
-              }`}
+              className="self-start md:self-auto flex items-center gap-2 px-6 py-3.5 bg-[#FFE600] hover:bg-[#FFF066] text-black font-mono font-black text-sm uppercase border-3 border-black shadow-[4px_4px_0px_#000] hover:-translate-y-1 active:translate-x-1 active:translate-y-1 active:shadow-[1px_1px_0px_#000] transition-all animate-pulse-glow"
             >
-              {cat === 'ALL' ? 'SEMUA KASUS (5)' : cat}
+              <MonitorPlay className="w-5 h-5" />
+              <span>MULAI PRESENTASI SLIDE (1 - 5)</span>
             </button>
-          ))}
-        </div>
+          </div>
+        </AnimatedReveal>
 
-        {/* Case Studies Grid */}
+        {/* Category Filters with Slide-Up */}
+        <AnimatedReveal animation="slide-up" delay={100} duration={400}>
+          <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-6 custom-scrollbar">
+            <span className="text-xs font-mono font-black uppercase text-black/60 flex items-center gap-1 mr-1">
+              <Filter className="w-3.5 h-3.5" />
+              <span>FILTER:</span>
+            </span>
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => {
+                  sound.playClick();
+                  setSelectedCategory(cat);
+                }}
+                className={`px-3.5 py-1.5 text-xs font-mono font-black uppercase border-2 border-black transition-all whitespace-nowrap ${
+                  selectedCategory === cat
+                    ? 'bg-black text-white shadow-[3px_3px_0px_#FFE600] -translate-y-0.5'
+                    : 'bg-white text-black hover:bg-[#FFE600] shadow-[2px_2px_0px_#000]'
+                }`}
+              >
+                {cat === 'ALL' ? 'SEMUA KASUS (5)' : cat}
+              </button>
+            ))}
+          </div>
+        </AnimatedReveal>
+
+        {/* Case Studies Grid with Staggered Multi-Animation Lazy Reveal */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {filteredCases.map((cs) => {
+          {filteredCases.map((cs, idx) => {
+            const staggerDelay = idx * 90;
             return (
-              <CaseStudyCard
+              <AnimatedReveal
                 key={cs.id}
-                caseStudy={cs}
-                onOpenPresentation={onOpenPresentation}
-              />
+                animation={idx % 2 === 0 ? 'slide-left' : 'slide-right'}
+                delay={staggerDelay}
+                duration={500}
+                threshold={0.15}
+                className="h-full"
+              >
+                <CaseStudyCard
+                  caseStudy={cs}
+                  onOpenPresentation={onOpenPresentation}
+                />
+              </AnimatedReveal>
             );
           })}
         </div>

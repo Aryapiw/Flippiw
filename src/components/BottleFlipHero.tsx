@@ -1,7 +1,24 @@
-import React, { useRef, useEffect } from 'react';
-import { Play, Sparkles, Trophy, CheckCircle2, ChevronLeft, ChevronRight, ArrowDown, RotateCcw, User, Flag } from 'lucide-react';
+import React, { useRef, useEffect, useState } from 'react';
+import {
+  Play,
+  Sparkles,
+  Trophy,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  ArrowDown,
+  RotateCcw,
+  User,
+  Flag,
+  Info,
+  X,
+  Zap,
+  Trash2
+} from 'lucide-react';
 import { Student, SelectedHistoryItem, CaseStudy } from '../types';
 import { RealisticBottle } from './RealisticBottle';
+import { AnimatedReveal } from './AnimatedReveal';
+import { sound } from '../utils/audio';
 
 interface BottleFlipHeroProps {
   students: Student[];
@@ -10,6 +27,7 @@ interface BottleFlipHeroProps {
   isFlipping: boolean;
   onFlip: () => void;
   onReset: () => void;
+  onRemoveSelectedStudent: (studentId: number) => void;
   currentTargetId: number | null;
   bottlePositionX: number;
   bottleAnimStyle: React.CSSProperties;
@@ -25,6 +43,7 @@ export const BottleFlipHero: React.FC<BottleFlipHeroProps> = ({
   isFlipping,
   onFlip,
   onReset,
+  onRemoveSelectedStudent,
   currentTargetId,
   bottlePositionX,
   bottleAnimStyle,
@@ -37,385 +56,543 @@ export const BottleFlipHero: React.FC<BottleFlipHeroProps> = ({
   const selectedCount = selectedList.length;
   const isComplete = selectedCount >= 5;
 
+  // State for interactive student card quick-popup
+  const [activeStudentPopup, setActiveStudentPopup] = useState<Student | null>(null);
+
+  // Toast feedback state when removing an individual student
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 2800);
+  };
+
   const handleScrollLeft = () => {
+    sound.playClick();
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollBy({ left: -320, behavior: 'smooth' });
     }
   };
 
   const handleScrollRight = () => {
+    sound.playClick();
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollBy({ left: 320, behavior: 'smooth' });
     }
   };
 
+  const handleStudentClick = (student: Student) => {
+    sound.playClick();
+    setActiveStudentPopup(student);
+  };
+
+  const handleDeleteSingleStudent = (student: Student) => {
+    sound.playBottleLanding();
+    onRemoveSelectedStudent(student.id);
+    showToast(`Nomor Siswa #${student.numberStr} berhasil dihapus dari daftar terpilih!`);
+  };
+
   return (
-    <section id="bottle-flip" className="w-full pt-8 pb-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Hero Header Presentation */}
-        <div className="text-center max-w-3xl mx-auto mb-8">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-[#FFE600] border-2 border-black shadow-[3px_3px_0px_#000] text-black font-mono font-black text-xs uppercase tracking-wider mb-3 transform -rotate-1">
-            <Sparkles className="w-4 h-4" />
-            <span>SIMULASI BOTTLE FLIP SELECTOR • 36 SISWA KELAS</span>
+    <section id="bottle-flip" className="w-full pt-8 pb-12 overflow-hidden relative">
+      
+      {/* Toast Notification Banner when deleting a single student */}
+      {toastMessage && (
+        <div className="fixed top-20 right-4 sm:right-8 z-50 animate-pop-modal">
+          <div className="flex items-center gap-3 px-4 py-3 bg-[#FFE600] text-black border-3 border-black shadow-[5px_5px_0px_#000] font-mono text-xs sm:text-sm font-black">
+            <Trash2 className="w-4 h-4 text-red-600 shrink-0" />
+            <span>{toastMessage}</span>
           </div>
-
-          <h1 className="text-4xl sm:text-6xl font-black font-mono uppercase tracking-tight text-black leading-none">
-            FLIP THE BOTTLE!
-          </h1>
-          <p className="text-lg sm:text-2xl font-black font-mono text-black mt-2">
-            PILIH 5 SISWA SECARA ACAK DENGAN <span className="bg-[#00F0FF] px-2 py-0.5 border-2 border-black">BOTTLE FLIP</span>
-          </p>
-
-          {/* Current Status Banner */}
-          {!isComplete ? (
-            <div className="mt-5 inline-flex flex-wrap items-center justify-center gap-2 px-4 py-2 bg-white border-3 border-black shadow-[4px_4px_0px_#000]">
-              <span className="text-xs font-mono font-black uppercase px-2 py-0.5 bg-black text-[#FFE600]">
-                RONDE {selectedCount + 1} / 5
-              </span>
-              <span className="text-xs sm:text-sm font-bold text-black font-mono">
-                Siap Melontarkan Botol untuk Memilih Siswa Berikutnya
-              </span>
-            </div>
-          ) : (
-            <div className="mt-5 inline-flex items-center gap-2 px-4 py-2 bg-[#A3E635] border-3 border-black shadow-[4px_4px_0px_#000]">
-              <Trophy className="w-5 h-5 text-black" />
-              <span className="text-sm font-black font-mono uppercase">
-                5 / 5 SISWA TELAH LENGKAP TERPILIH!
-              </span>
-            </div>
-          )}
         </div>
+      )}
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Hero Header Presentation with Pop-In Animation */}
+        <AnimatedReveal animation="pop-in" duration={450}>
+          <div className="text-center max-w-3xl mx-auto mb-8">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-[#FFE600] border-2 border-black shadow-[3px_3px_0px_#000] text-black font-mono font-black text-xs uppercase tracking-wider mb-3 animate-float-badge">
+              <Sparkles className="w-4 h-4" />
+              <span>SIMULASI BOTTLE FLIP SELECTOR • 28 SISWA KELAS</span>
+            </div>
+
+            <h1 className="text-4xl sm:text-6xl font-black font-mono uppercase tracking-tight text-black leading-none">
+              FLIP THE BOTTLE!
+            </h1>
+            <p className="text-lg sm:text-2xl font-black font-mono text-black mt-2">
+              PILIH 5 SISWA SECARA ACAK DENGAN <span className="bg-[#00F0FF] px-2 py-0.5 border-2 border-black shadow-[2px_2px_0px_#000]">BOTTLE FLIP</span>
+            </p>
+
+            {/* Current Status Banner */}
+            {!isComplete ? (
+              <div className="mt-5 inline-flex flex-wrap items-center justify-center gap-2 px-4 py-2 bg-white border-3 border-black shadow-[4px_4px_0px_#000] animate-bounce-subtle">
+                <span className="text-xs font-mono font-black uppercase px-2 py-0.5 bg-black text-[#FFE600]">
+                  RONDE {selectedCount + 1} / 5
+                </span>
+                <span className="text-xs sm:text-sm font-bold text-black font-mono">
+                  Siap Melontarkan Botol untuk Memilih Siswa Berikutnya
+                </span>
+              </div>
+            ) : (
+              <div className="mt-5 inline-flex items-center gap-2 px-4 py-2 bg-[#A3E635] border-3 border-black shadow-[4px_4px_0px_#000] animate-pulse-glow">
+                <Trophy className="w-5 h-5 text-black" />
+                <span className="text-sm font-black font-mono uppercase">
+                  5 / 5 SISWA TELAH LENGKAP TERPILIH!
+                </span>
+              </div>
+            )}
+          </div>
+        </AnimatedReveal>
 
         {/* ============================================================ */}
         {/* MAIN BOTTLE FLIP STAGE (Neobrutalism Arena) */}
         {/* ============================================================ */}
-        <div className="bg-white border-4 border-black shadow-[8px_8px_0px_#000] p-4 sm:p-6 mb-8 relative">
-          
-              {/* Top Stage Bar */}
-          <div className="flex items-center justify-between border-b-3 border-black pb-3 mb-4 flex-wrap gap-2">
-            <div className="flex items-center gap-2">
-              <span className="w-3.5 h-3.5 bg-[#00F0FF] border-2 border-black inline-block" />
-              <span className="w-3.5 h-3.5 bg-[#FFE600] border-2 border-black inline-block" />
-              <span className="w-3.5 h-3.5 bg-[#A3E635] border-2 border-black inline-block" />
-              <span className="text-xs sm:text-sm font-mono font-black uppercase tracking-wider ml-1">
-                GARIS START & LINTASAN {students.length} NOMOR SISWA
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-mono font-bold text-black/70 hidden sm:inline">
-                Scroll horizontal untuk cek lintasan:
-              </span>
-              <button
-                type="button"
-                onClick={handleScrollLeft}
-                className="p-1.5 bg-[#FFFDF5] border-2 border-black shadow-[2px_2px_0px_#000] hover:bg-[#FFE600] active:translate-x-0.5 active:translate-y-0.5 transition-all"
-                title="Geser Kiri"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={handleScrollRight}
-                className="p-1.5 bg-[#FFFDF5] border-2 border-black shadow-[2px_2px_0px_#000] hover:bg-[#FFE600] active:translate-x-0.5 active:translate-y-0.5 transition-all"
-                title="Geser Kanan"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* Scrollable Arena with synchronized Air Zone and Number Cards */}
-          <div
-            ref={scrollContainerRef}
-            className="w-full overflow-x-auto pb-4 custom-scrollbar"
-          >
-            <div className="min-w-max px-2">
-              
-              {/* AIR ZONE: Where the bottle flies & flips */}
-              <div className="relative w-full h-56 sm:h-64 flex items-end justify-start border-b-4 border-black pb-2 mb-4 bg-gradient-to-b from-[#FFFDF5] to-amber-50/50">
-                
-                {/* Visual Grid Lines in Arena */}
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000008_1px,transparent_1px),linear-gradient(to_bottom,#00000008_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
-
-                {/* Laser / Landing Table Rail */}
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-black" />
-
-                {/* Guide Marker Start */}
-                <div className="absolute -bottom-3 left-3 flex items-center gap-1.5 text-[10px] font-mono font-black uppercase bg-[#00F0FF] text-black px-2.5 py-0.5 border-2 border-black shadow-[2px_2px_0px_#000] z-20">
-                  <Flag className="w-3 h-3 text-black fill-black" />
-                  <span>TITIK AWAL (START)</span>
-                </div>
-
-                {/* BOTTLE ACTOR - Synchronously tracked by requestAnimationFrame */}
-                <div
-                  id="flipping-bottle-actor"
-                  style={{
-                    transform: `translateX(${bottlePositionX}px)`,
-                    transition: actorTransition,
-                  }}
-                  className="absolute bottom-1 z-30 pointer-events-none origin-bottom will-change-transform"
-                >
-                  <div
-                    id="flipping-bottle-inner"
-                    style={bottleAnimStyle}
-                    className="origin-center will-change-transform"
-                  >
-                    <RealisticBottle isGlowing={currentTargetId !== null && !isFlipping} />
-                  </div>
-                </div>
-              </div>
-
-              {/* HORIZONTAL CARDS: GARIS START + 36 STUDENT CARDS */}
-              <div className="flex items-stretch gap-2.5 pt-1">
-                
-                {/* GARIS START CARD (Position 0) */}
-                <div
-                  data-student-id="0"
-                  id="card-start-line"
-                  className={`flex-shrink-0 w-24 sm:w-28 p-3 flex flex-col items-center justify-between border-3 border-black transition-all select-none ${
-                    currentTargetId === null && !isFlipping
-                      ? 'bg-[#00F0FF] shadow-[5px_5px_0px_#000] -translate-y-2 z-10 scale-105'
-                      : 'bg-[#00F0FF]/80 shadow-[3px_3px_0px_#000]'
-                  }`}
-                >
-                  <div className="w-full flex items-center justify-between">
-                    <span className="text-[10px] font-mono font-black text-black">
-                      START
-                    </span>
-                    <Flag className="w-3.5 h-3.5 text-black fill-black" />
-                  </div>
-
-                  <div className="text-3xl font-black font-mono tracking-tight text-black my-2 flex items-center justify-center">
-                    🏁
-                  </div>
-
-                  <div className="mt-2 w-full pt-1.5 border-t-2 border-black text-center">
-                    <span className="text-[9px] font-mono font-black uppercase bg-black text-[#00F0FF] px-1 py-0.5 block">
-                      GARIS START
-                    </span>
-                  </div>
-                </div>
-
-                {students.map((student) => {
-                  const isSelected = selectedStudentIds.includes(student.id);
-                  const isCurrentTarget = currentTargetId === student.id;
-                  const selectedIndex = selectedList.findIndex((item) => item.student.id === student.id);
-
-                  return (
-                    <div
-                      key={student.id}
-                      ref={(el) => {
-                        if (el) cardRefs.current.set(student.id, el);
-                        else cardRefs.current.delete(student.id);
-                      }}
-                      data-student-id={student.id}
-                      className={`flex-shrink-0 w-24 sm:w-28 p-3 flex flex-col items-center justify-between border-3 border-black transition-all select-none ${
-                        isCurrentTarget
-                          ? 'bg-[#FFE600] shadow-[5px_5px_0px_#000] -translate-y-2 z-20 scale-105'
-                          : isSelected
-                          ? 'bg-gray-100 opacity-70 shadow-[2px_2px_0px_#000]'
-                          : 'bg-[#FFFDF5] shadow-[3px_3px_0px_#000] hover:bg-[#FFE600]/20 hover:-translate-y-0.5'
-                      }`}
-                    >
-                      {/* Top Label */}
-                      <div className="w-full flex items-center justify-between">
-                        <span className="text-[10px] font-mono font-black text-black/60">
-                          NO.
-                        </span>
-                        {isSelected && (
-                          <span className="w-4 h-4 rounded-full bg-black text-white flex items-center justify-center">
-                            <CheckCircle2 className="w-3 h-3 text-[#A3E635]" />
-                          </span>
-                        )}
-                        {isCurrentTarget && (
-                          <span className="px-1.5 py-0.5 bg-black text-[#FFE600] text-[9px] font-mono font-black uppercase animate-bounce">
-                            HIT!
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Student Number (No person name, pure number 1-36) */}
-                      <div className="text-3xl sm:text-4xl font-black font-mono tracking-tight text-black my-2">
-                        {student.numberStr}
-                      </div>
-
-                      {/* Status Tag */}
-                      <div className="mt-2 w-full pt-1.5 border-t-2 border-black text-center">
-                        {isSelected ? (
-                          <span className="text-[9px] font-mono font-black uppercase bg-black text-[#FFE600] px-1 py-0.5 block">
-                            TERPILIH #{selectedIndex + 1}
-                          </span>
-                        ) : isCurrentTarget ? (
-                          <span className="text-[9px] font-mono font-black uppercase bg-[#FFE600] text-black border border-black px-1 py-0.5 block animate-bounce">
-                            LANDED!
-                          </span>
-                        ) : (
-                          <span className="text-[9px] font-mono font-bold uppercase text-black/60 block">
-                            SIAP
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* FLIP ACTION DECK */}
-          <div className="mt-6 pt-5 border-t-3 border-black flex flex-col sm:flex-row items-center justify-between gap-4">
+        <AnimatedReveal animation="slide-up" delay={150} duration={500}>
+          <div className="bg-white border-4 border-black shadow-[8px_8px_0px_#000] p-4 sm:p-6 mb-8 relative">
             
-            {/* Progress indicators */}
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-mono font-black uppercase">
-                HASIL PEMILIHAN:
-              </span>
-              <div className="flex items-center gap-1.5">
-                {[1, 2, 3, 4, 5].map((slot) => {
-                  const isFilled = slot <= selectedCount;
-                  return (
-                    <div
-                      key={`progress-slot-${slot}`}
-                      className={`w-7 h-7 border-2 border-black font-mono font-black text-xs flex items-center justify-center transition-all ${
-                        isFilled
-                          ? 'bg-[#FFE600] text-black shadow-[2px_2px_0px_#000] scale-105'
-                          : 'bg-gray-100 text-gray-400'
-                      }`}
-                    >
-                      {slot}
-                    </div>
-                  );
-                })}
+            {/* Top Stage Bar */}
+            <div className="flex items-center justify-between border-b-3 border-black pb-3 mb-4 flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <span className="w-3.5 h-3.5 bg-[#00F0FF] border-2 border-black inline-block animate-pulse" />
+                <span className="w-3.5 h-3.5 bg-[#FFE600] border-2 border-black inline-block" />
+                <span className="w-3.5 h-3.5 bg-[#A3E635] border-2 border-black inline-block" />
+                <span className="text-xs sm:text-sm font-mono font-black uppercase tracking-wider ml-1">
+                  GARIS START & LINTASAN {students.length} NOMOR SISWA
+                </span>
               </div>
-              <span className="text-xs font-mono font-bold ml-1">
-                ({selectedCount} / 5 SISWA)
-              </span>
-            </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              {selectedCount > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono font-bold text-black/70 hidden sm:inline">
+                  Scroll horizontal untuk cek lintasan:
+                </span>
                 <button
                   type="button"
-                  id="btn-hero-reset-selections"
-                  disabled={isFlipping}
-                  onClick={onReset}
-                  className="px-4 py-3.5 sm:py-4 font-mono font-black text-xs sm:text-sm uppercase tracking-wider bg-[#FF6B9D] hover:bg-[#ff85af] text-black border-4 border-black shadow-[4px_4px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-1 active:translate-y-1 active:shadow-[1px_1px_0px_#000] transition-all flex items-center justify-center gap-2"
-                  title="Reset Pemilihan Siswa"
+                  onClick={handleScrollLeft}
+                  className="p-2 bg-[#FFFDF5] border-2 border-black shadow-[2px_2px_0px_#000] hover:bg-[#FFE600] active:translate-x-0.5 active:translate-y-0.5 transition-all"
+                  title="Geser Kiri"
                 >
-                  <RotateCcw className="w-4 h-4 text-black" />
-                  <span>RESET (0/5)</span>
+                  <ChevronLeft className="w-4 h-4" />
                 </button>
-              )}
-
-              {/* BIG NEOBRUTALIST FLIP BUTTON */}
-              <button
-                type="button"
-                id="btn-hero-flip-bottle"
-                disabled={isFlipping || isComplete}
-                onClick={onFlip}
-                className={`flex-1 sm:flex-initial px-6 sm:px-10 py-4 font-mono font-black text-base sm:text-lg uppercase tracking-wider border-4 border-black transition-all flex items-center justify-center gap-3 ${
-                  isComplete
-                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed shadow-[3px_3px_0px_#000]'
-                    : isFlipping
-                    ? 'bg-[#00F0FF] text-black cursor-wait shadow-[3px_3px_0px_#000] translate-x-1 translate-y-1'
-                    : 'bg-[#FFE600] hover:bg-[#FFF066] text-black shadow-[6px_6px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-1 active:translate-y-1 active:shadow-[2px_2px_0px_#000]'
-                }`}
-              >
-                {isFlipping ? (
-                  <>
-                    <div className="w-5 h-5 border-3 border-black border-t-transparent rounded-full animate-spin" />
-                    <span>BOTOL MELAYANG & DIIKUTI LAYAR...</span>
-                  </>
-                ) : isComplete ? (
-                  <>
-                    <Trophy className="w-5 h-5 text-black" />
-                    <span>5 SISWA LENGKAP TERPILIH</span>
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-5 h-5 fill-black text-black" />
-                    <span>FLIP BOTOL SEKARANG!</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* ============================================================ */}
-        {/* 5 SELECTED STUDENTS SLOTS (NO INDIVIDUAL CASE ASSIGNMENT) */}
-        {/* ============================================================ */}
-        <div className="w-full">
-          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-            <h3 className="text-lg font-black font-mono uppercase text-black flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-black" />
-              <span>DAFTAR 5 SISWA TERPILIH (HASIL BOTTLE FLIP)</span>
-            </h3>
-            <a
-              href="#studi-kasus"
-              className="text-xs font-mono font-black uppercase text-black hover:underline flex items-center gap-1"
-            >
-              <span>Lihat Materi 5 Studi Kasus APBN 2026</span>
-              <ArrowDown className="w-3.5 h-3.5" />
-            </a>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
-            {[0, 1, 2, 3, 4].map((slotIdx) => {
-              const item = selectedList[slotIdx];
-              const slotNumber = slotIdx + 1;
-
-              return (
-                <div
-                  key={`selected-student-slot-${slotNumber}`}
-                  className={`border-3 border-black p-4 flex flex-col justify-between transition-all ${
-                    item
-                      ? 'bg-[#A3E635]/25 border-black shadow-[4px_4px_0px_#000]'
-                      : 'bg-white/70 border-dashed border-black/50 shadow-[2px_2px_0px_#000]'
-                  }`}
+                <button
+                  type="button"
+                  onClick={handleScrollRight}
+                  className="p-2 bg-[#FFFDF5] border-2 border-black shadow-[2px_2px_0px_#000] hover:bg-[#FFE600] active:translate-x-0.5 active:translate-y-0.5 transition-all"
+                  title="Geser Kanan"
                 >
-                  {/* Slot Header */}
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-[10px] font-mono font-black uppercase px-2 py-0.5 bg-black text-white">
-                      SISWA TERPILIH #{slotNumber}
-                    </span>
-                    {item && (
-                      <CheckCircle2 className="w-4 h-4 text-black" />
-                    )}
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Scrollable Arena with synchronized Air Zone and Number Cards */}
+            <div
+              ref={scrollContainerRef}
+              className="w-full overflow-x-auto pb-4 custom-scrollbar"
+            >
+              <div className="min-w-max px-2">
+                
+                {/* AIR ZONE: Where the bottle flies & flips */}
+                <div className="relative w-full h-56 sm:h-64 flex items-end justify-start border-b-4 border-black pb-2 mb-4 bg-gradient-to-b from-[#FFFDF5] to-amber-50/50">
+                  
+                  {/* Visual Grid Lines in Arena */}
+                  <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000008_1px,transparent_1px),linear-gradient(to_bottom,#00000008_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+
+                  {/* Laser / Landing Table Rail */}
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-black" />
+
+                  {/* Guide Marker Start */}
+                  <div className="absolute -bottom-3 left-3 flex items-center gap-1.5 text-[10px] font-mono font-black uppercase bg-[#00F0FF] text-black px-2.5 py-0.5 border-2 border-black shadow-[2px_2px_0px_#000] z-20">
+                    <Flag className="w-3 h-3 text-black fill-black" />
+                    <span>TITIK AWAL (START)</span>
                   </div>
 
-                  {/* Student Details */}
-                  {item ? (
-                    <div>
-                      <div className="text-3xl font-black font-mono text-black">
-                        #{item.student.numberStr}
-                      </div>
-                      <div className="text-xs font-mono font-bold text-black uppercase mt-1">
-                        Siswa Nomor {item.student.numberStr}
-                      </div>
-                      <div className="text-[10px] font-mono font-bold text-black/60 mt-2 pt-1 border-t border-black/30">
-                        Terpilih pada Ronde {item.round}
-                      </div>
+                  {/* BOTTLE ACTOR - Synchronously tracked by requestAnimationFrame */}
+                  <div
+                    id="flipping-bottle-actor"
+                    style={{
+                      transform: `translateX(${bottlePositionX}px)`,
+                      transition: actorTransition,
+                    }}
+                    className="absolute bottom-1 z-30 pointer-events-none origin-bottom will-change-transform"
+                  >
+                    <div
+                      id="flipping-bottle-inner"
+                      style={bottleAnimStyle}
+                      className="origin-center will-change-transform"
+                    >
+                      <RealisticBottle isGlowing={currentTargetId !== null && !isFlipping} />
                     </div>
-                  ) : (
-                    <div className="py-4 text-center">
-                      <div className="w-8 h-8 rounded-full border-2 border-dashed border-black/40 mx-auto flex items-center justify-center text-gray-400 mb-1">
-                        <User className="w-4 h-4" />
-                      </div>
-                      <div className="text-xs font-mono font-bold text-gray-500 italic">
-                        Menunggu flip botol...
-                      </div>
-                    </div>
-                  )}
+                  </div>
                 </div>
-              );
-            })}
+
+                {/* HORIZONTAL CARDS: GARIS START + 28 STUDENT CARDS */}
+                <div className="flex items-stretch gap-2.5 pt-1">
+                  
+                  {/* GARIS START CARD (Position 0) */}
+                  <div
+                    data-student-id="0"
+                    id="card-start-line"
+                    className={`flex-shrink-0 w-24 sm:w-28 p-3 flex flex-col items-center justify-between border-3 border-black transition-all select-none ${
+                      currentTargetId === null && !isFlipping
+                        ? 'bg-[#00F0FF] shadow-[5px_5px_0px_#000] -translate-y-2 z-10 scale-105'
+                        : 'bg-[#00F0FF]/80 shadow-[3px_3px_0px_#000]'
+                    }`}
+                  >
+                    <div className="w-full flex items-center justify-between">
+                      <span className="text-[10px] font-mono font-black text-black">
+                        START
+                      </span>
+                      <Flag className="w-3.5 h-3.5 text-black fill-black" />
+                    </div>
+
+                    <div className="text-3xl font-black font-mono tracking-tight text-black my-2 flex items-center justify-center">
+                      🏁
+                    </div>
+
+                    <div className="mt-2 w-full pt-1.5 border-t-2 border-black text-center">
+                      <span className="text-[9px] font-mono font-black uppercase bg-black text-[#00F0FF] px-1 py-0.5 block">
+                        GARIS START
+                      </span>
+                    </div>
+                  </div>
+
+                  {students.map((student) => {
+                    const isSelected = selectedStudentIds.includes(student.id);
+                    const isCurrentTarget = currentTargetId === student.id;
+                    const selectedIndex = selectedList.findIndex((item) => item.student.id === student.id);
+
+                    return (
+                      <div
+                        key={student.id}
+                        ref={(el) => {
+                          if (el) cardRefs.current.set(student.id, el);
+                          else cardRefs.current.delete(student.id);
+                        }}
+                        onClick={() => handleStudentClick(student)}
+                        data-student-id={student.id}
+                        className={`group flex-shrink-0 w-24 sm:w-28 p-3 flex flex-col items-center justify-between border-3 border-black cursor-pointer transition-all duration-200 select-none ${
+                          isCurrentTarget
+                            ? 'bg-[#FFE600] shadow-[6px_6px_0px_#000] -translate-y-3 z-20 scale-110 animate-bounce-subtle'
+                            : isSelected
+                            ? 'bg-emerald-50 border-emerald-950 shadow-[3px_3px_0px_#000]'
+                            : 'bg-[#FFFDF5] shadow-[3px_3px_0px_#000] hover:bg-[#FFE600]/30 hover:-translate-y-1.5 hover:shadow-[5px_5px_0px_#000]'
+                        }`}
+                        title={`Klik untuk info Siswa #${student.numberStr}`}
+                      >
+                        {/* Top Label */}
+                        <div className="w-full flex items-center justify-between">
+                          <span className="text-[10px] font-mono font-black text-black/60">
+                            NO.
+                          </span>
+                          {isSelected && (
+                            <span className="w-4 h-4 rounded-full bg-black text-white flex items-center justify-center animate-stamp">
+                              <CheckCircle2 className="w-3 h-3 text-[#A3E635]" />
+                            </span>
+                          )}
+                          {isCurrentTarget && (
+                            <span className="px-1.5 py-0.5 bg-black text-[#FFE600] text-[9px] font-mono font-black uppercase animate-bounce">
+                              HIT!
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Student Number */}
+                        <div className="text-3xl sm:text-4xl font-black font-mono tracking-tight text-black my-2 group-hover:scale-105 transition-transform">
+                          {student.numberStr}
+                        </div>
+
+                        {/* Status Tag */}
+                        <div className="mt-2 w-full pt-1.5 border-t-2 border-black text-center">
+                          {isSelected ? (
+                            <span className="text-[9px] font-mono font-black uppercase bg-black text-[#A3E635] px-1 py-0.5 block">
+                              TERPILIH #{selectedIndex + 1}
+                            </span>
+                          ) : isCurrentTarget ? (
+                            <span className="text-[9px] font-mono font-black uppercase bg-[#FFE600] text-black border border-black px-1 py-0.5 block font-bold">
+                              LANDED!
+                            </span>
+                          ) : (
+                            <span className="text-[9px] font-mono font-bold uppercase text-black/60 block group-hover:text-black">
+                              SIAP
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* FLIP ACTION DECK */}
+            <div className="mt-6 pt-5 border-t-3 border-black flex flex-col sm:flex-row items-center justify-between gap-4">
+              
+              {/* Progress indicators with pop effects */}
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-mono font-black uppercase">
+                  HASIL PEMILIHAN:
+                </span>
+                <div className="flex items-center gap-1.5">
+                  {[1, 2, 3, 4, 5].map((slot) => {
+                    const isFilled = slot <= selectedCount;
+                    return (
+                      <div
+                        key={`progress-slot-${slot}`}
+                        className={`w-8 h-8 border-2 border-black font-mono font-black text-xs flex items-center justify-center transition-all ${
+                          isFilled
+                            ? 'bg-[#FFE600] text-black shadow-[3px_3px_0px_#000] scale-110 rotate-2'
+                            : 'bg-gray-100 text-gray-400'
+                        }`}
+                      >
+                        {slot}
+                      </div>
+                    );
+                  })}
+                </div>
+                <span className="text-xs font-mono font-bold ml-1">
+                  ({selectedCount} / 5 SISWA)
+                </span>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                {selectedCount > 0 && (
+                  <button
+                    type="button"
+                    id="btn-hero-reset-selections"
+                    disabled={isFlipping}
+                    onClick={() => {
+                      sound.playClick();
+                      onReset();
+                    }}
+                    className="px-4 py-3.5 sm:py-4 font-mono font-black text-xs sm:text-sm uppercase tracking-wider bg-[#FF6B9D] hover:bg-[#ff85af] text-black border-4 border-black shadow-[4px_4px_0px_#000] hover:-translate-y-1 active:translate-x-1 active:translate-y-1 active:shadow-[1px_1px_0px_#000] transition-all flex items-center justify-center gap-2"
+                    title="Reset Seluruh Siswa Terpilih (0/5)"
+                  >
+                    <RotateCcw className="w-4 h-4 text-black" />
+                    <span>RESET SEMUA (0/5)</span>
+                  </button>
+                )}
+
+                {/* BIG NEOBRUTALIST FLIP BUTTON WITH GLOW PULSE */}
+                <button
+                  type="button"
+                  id="btn-hero-flip-bottle"
+                  disabled={isFlipping || isComplete}
+                  onClick={() => {
+                    sound.playClick();
+                    onFlip();
+                  }}
+                  className={`flex-1 sm:flex-initial px-6 sm:px-10 py-4 font-mono font-black text-base sm:text-lg uppercase tracking-wider border-4 border-black transition-all flex items-center justify-center gap-3 ${
+                    isComplete
+                      ? 'bg-gray-200 text-gray-500 cursor-not-allowed shadow-[3px_3px_0px_#000]'
+                      : isFlipping
+                      ? 'bg-[#00F0FF] text-black cursor-wait shadow-[3px_3px_0px_#000] translate-x-1 translate-y-1'
+                      : 'bg-[#FFE600] hover:bg-[#FFF066] text-black shadow-[6px_6px_0px_#000] animate-pulse-glow hover:-translate-y-1 active:translate-x-1 active:translate-y-1 active:shadow-[2px_2px_0px_#000]'
+                  }`}
+                >
+                  {isFlipping ? (
+                    <>
+                      <div className="w-5 h-5 border-3 border-black border-t-transparent rounded-full animate-spin" />
+                      <span>BOTOL MELAYANG & DIIKUTI LAYAR...</span>
+                    </>
+                  ) : isComplete ? (
+                    <>
+                      <Trophy className="w-5 h-5 text-black" />
+                      <span>5 SISWA LENGKAP TERPILIH</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-5 h-5 fill-black text-black" />
+                      <span>FLIP BOTOL SEKARANG!</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        </AnimatedReveal>
+
+        {/* ============================================================ */}
+        {/* 5 SELECTED STUDENTS SLOTS WITH INDIVIDUAL DELETE FEATURE */}
+        {/* ============================================================ */}
+        <AnimatedReveal animation="zoom" delay={250} duration={450}>
+          <div className="w-full">
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <div>
+                <h3 className="text-lg font-black font-mono uppercase text-black flex items-center gap-2">
+                  <Trophy className="w-5 h-5 text-black" />
+                  <span>DAFTAR 5 SISWA TERPILIH (HASIL BOTTLE FLIP)</span>
+                </h3>
+                <p className="text-xs text-black/70 font-bold mt-0.5">
+                  Gunakan tombol <strong className="text-red-600 uppercase font-mono">Hapus</strong> pada kartu siswa jika ingin menghapus hanya 1 nomor tertentu tanpa mereset semuanya.
+                </p>
+              </div>
+
+              <a
+                href="#tata-cara-bermain"
+                className="text-xs font-mono font-black uppercase text-black hover:underline flex items-center gap-1 bg-[#FFE600] px-2.5 py-1 border border-black shadow-[2px_2px_0px_#000]"
+              >
+                <span>Lihat Panduan & Aturan Bermain</span>
+                <ArrowDown className="w-3.5 h-3.5" />
+              </a>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+              {[0, 1, 2, 3, 4].map((slotIdx) => {
+                const item = selectedList[slotIdx];
+                const slotNumber = slotIdx + 1;
+
+                return (
+                  <div
+                    key={`selected-student-slot-${slotNumber}`}
+                    className={`border-3 border-black p-4 flex flex-col justify-between transition-all duration-300 ${
+                      item
+                        ? 'bg-[#A3E635]/25 border-black shadow-[5px_5px_0px_#000] -translate-y-1 animate-stamp'
+                        : 'bg-white/70 border-dashed border-black/50 shadow-[2px_2px_0px_#000]'
+                    }`}
+                  >
+                    {/* Slot Header */}
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-[10px] font-mono font-black uppercase px-2 py-0.5 bg-black text-white">
+                        SLOT #{slotNumber}
+                      </span>
+                      
+                      {/* Individual Delete Button on Top Right */}
+                      {item && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteSingleStudent(item.student);
+                          }}
+                          className="p-1 px-1.5 bg-[#FF6B6B] hover:bg-black text-white font-mono font-black text-[10px] uppercase border-2 border-black shadow-[2px_2px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 transition-all flex items-center gap-1"
+                          title={`Hapus Siswa #${item.student.numberStr} saja dari slot #${slotNumber}`}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          <span>HAPUS</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Student Details */}
+                    {item ? (
+                      <div>
+                        <div className="flex items-baseline justify-between">
+                          <div className="text-4xl font-black font-mono text-black">
+                            #{item.student.numberStr}
+                          </div>
+                          <span className="text-[10px] font-mono font-black px-2 py-0.5 bg-[#FFE600] border border-black shadow-[1px_1px_0px_#000]">
+                            Ronde {item.round}
+                          </span>
+                        </div>
+                        
+                        <div className="text-xs font-mono font-bold text-black uppercase mt-1">
+                          Siswa Nomor {item.student.numberStr}
+                        </div>
+
+                        {/* Dedicated Bottom Delete Action */}
+                        <div className="mt-3 pt-2 border-t-2 border-black/20">
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteSingleStudent(item.student)}
+                            className="w-full py-1.5 px-2 bg-white hover:bg-[#FF6B6B] text-black hover:text-white font-mono font-black text-[10px] uppercase border-2 border-black shadow-[2px_2px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 transition-all flex items-center justify-center gap-1.5"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 text-red-600 group-hover:text-white" />
+                            <span>HAPUS NOMOR INI</span>
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="py-5 text-center">
+                        <div className="w-9 h-9 rounded-full border-2 border-dashed border-black/40 mx-auto flex items-center justify-center text-gray-400 mb-1">
+                          <User className="w-4 h-4" />
+                        </div>
+                        <div className="text-xs font-mono font-bold text-gray-500 italic">
+                          Menunggu flip botol...
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </AnimatedReveal>
 
       </div>
+
+      {/* POP-UP MODAL WHEN A STUDENT CARD IS CLICKED IN THE TRACK */}
+      {activeStudentPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm transition-all duration-200">
+          <div className="relative w-full max-w-sm bg-[#FFFDF5] border-4 border-black shadow-[10px_10px_0px_#000] p-6 text-center animate-pop-modal">
+            
+            <button
+              type="button"
+              onClick={() => {
+                sound.playClick();
+                setActiveStudentPopup(null);
+              }}
+              className="absolute top-3 right-3 p-1.5 bg-white hover:bg-black hover:text-white border-2 border-black shadow-[2px_2px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 transition-all"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#00F0FF] border-2 border-black shadow-[2px_2px_0px_#000] font-mono font-black text-xs uppercase mb-3">
+              <Zap className="w-3.5 h-3.5 text-black" />
+              <span>INFO KARTU LINTASAN</span>
+            </div>
+
+            <div className="w-20 h-20 mx-auto mb-3 bg-[#FFE600] border-3 border-black shadow-[4px_4px_0px_#000] flex items-center justify-center font-mono font-black text-4xl text-black">
+              #{activeStudentPopup.numberStr}
+            </div>
+
+            <h3 className="font-mono font-black text-xl uppercase text-black mb-1">
+              Siswa Nomor {activeStudentPopup.numberStr}
+            </h3>
+
+            <div className="p-3 bg-white border-2 border-black shadow-[2px_2px_0px_#000] my-4 text-xs font-semibold text-black">
+              {selectedStudentIds.includes(activeStudentPopup.id) ? (
+                <div className="text-emerald-700 font-bold flex items-center justify-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Siswa ini SUDAH TERPILIH di salah satu ronde flip!</span>
+                </div>
+              ) : (
+                <div className="text-black/80">
+                  Status: <strong className="text-black font-black uppercase">Siap Terpilih</strong> pada ronde flip berikutnya.
+                </div>
+              )}
+            </div>
+
+            {/* If this student is currently selected, provide a direct delete button */}
+            {selectedStudentIds.includes(activeStudentPopup.id) && (
+              <button
+                type="button"
+                onClick={() => {
+                  handleDeleteSingleStudent(activeStudentPopup);
+                  setActiveStudentPopup(null);
+                }}
+                className="w-full py-2.5 mb-2.5 bg-[#FF6B6B] hover:bg-[#ff5252] text-white font-mono font-black text-xs uppercase border-2 border-black shadow-[3px_3px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 transition-all flex items-center justify-center gap-2"
+              >
+                <Trash2 className="w-4 h-4 text-white" />
+                <span>Hapus Nomor #{activeStudentPopup.numberStr} Dari Daftar Terpilih</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => {
+                sound.playClick();
+                setActiveStudentPopup(null);
+              }}
+              className="w-full py-2.5 bg-[#FFE600] hover:bg-[#FFF066] text-black font-mono font-black text-xs uppercase border-2 border-black shadow-[3px_3px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 transition-all"
+            >
+              TUTUP POP-UP
+            </button>
+          </div>
+        </div>
+      )}
+
     </section>
   );
 };

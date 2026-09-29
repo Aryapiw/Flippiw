@@ -30,7 +30,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
         {/* Brand */}
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 bg-[#FFE600] border-3 border-black shadow-[3px_3px_0px_#000] flex items-center justify-center transform -rotate-2">
+          <div className="w-11 h-11 bg-[#FFE600] border-3 border-black shadow-[3px_3px_0px_#000] flex items-center justify-center transform -rotate-2 animate-float-badge">
             <Flame className="w-6 h-6 text-black" />
           </div>
           <div>
@@ -55,6 +55,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="px-3 py-1.5 text-xs font-black uppercase font-mono bg-white border-2 border-black shadow-[2px_2px_0px_#000] hover:bg-[#FFE600] hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
           >
             🎯 Bottle Flip
+          </a>
+          <a
+            href="#tata-cara-bermain"
+            className="px-3 py-1.5 text-xs font-black uppercase font-mono bg-white border-2 border-black shadow-[2px_2px_0px_#000] hover:bg-[#A3E635] hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
+          >
+            📋 Tata Cara Bermain
           </a>
           <a
             href="#studi-kasus"

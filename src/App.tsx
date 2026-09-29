@@ -12,6 +12,7 @@ import { sound } from './utils/audio';
 
 import { Navbar } from './components/Navbar';
 import { BottleFlipHero } from './components/BottleFlipHero';
+import { TataCaraBermain } from './components/TataCaraBermain';
 import { CaseStudiesSection } from './components/CaseStudiesSection';
 import { Footer } from './components/Footer';
 import { WinnerAnnouncementModal } from './components/WinnerAnnouncementModal';
@@ -386,6 +387,24 @@ export function App() {
     }
   };
 
+  // Remove a specific individual selected student
+  const handleRemoveSelectedStudent = (studentId: number) => {
+    sound.playClick();
+    setSelectedList((prev) => {
+      const filtered = prev.filter((item) => item.student.id !== studentId);
+      // Re-index round numbers
+      return filtered.map((item, idx) => ({
+        ...item,
+        round: idx + 1,
+      }));
+    });
+
+    if (currentTargetId === studentId) {
+      setCurrentTargetId(null);
+      resetBottleToStart(false);
+    }
+  };
+
   const handleOpenPresentation = (caseId: number = 1) => {
     setPresentationCaseId(caseId);
   };
@@ -414,6 +433,7 @@ export function App() {
           isFlipping={isFlipping}
           onFlip={handleFlipBottle}
           onReset={handleReset}
+          onRemoveSelectedStudent={handleRemoveSelectedStudent}
           currentTargetId={currentTargetId}
           bottlePositionX={bottlePositionX}
           bottleAnimStyle={bottleAnimStyle}
@@ -427,7 +447,10 @@ export function App() {
           }}
         />
 
-        {/* 2. 5 Studi Kasus APBN 2026 Section (Simple, Clean & Focused) */}
+        {/* 2. Tata Cara Bermain 9 Langkah (Neobrutalism Cards with Icons & Guidelines) */}
+        <TataCaraBermain />
+
+        {/* 3. 5 Studi Kasus APBN 2026 Section (Simple, Clean & Focused) */}
         <CaseStudiesSection
           caseStudies={CASE_STUDIES}
           selectedList={selectedList}

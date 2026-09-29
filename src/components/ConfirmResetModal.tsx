@@ -24,8 +24,8 @@ export const ConfirmResetModal: React.FC<ConfirmResetModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="relative w-full max-w-md bg-[#FFFDF5] border-4 border-black shadow-[10px_10px_0px_#000] p-6 text-center overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm transition-all duration-200">
+      <div className="relative w-full max-w-md bg-[#FFFDF5] border-4 border-black shadow-[10px_10px_0px_#000] p-6 text-center overflow-hidden animate-pop-modal">
         {/* Top Close Button */}
         <button
           type="button"
@@ -33,15 +33,15 @@ export const ConfirmResetModal: React.FC<ConfirmResetModalProps> = ({
             sound.playClick();
             onClose();
           }}
-          className="absolute top-3 right-3 p-1.5 bg-white hover:bg-black hover:text-white border-2 border-black shadow-[2px_2px_0px_#000] transition-colors"
+          className="absolute top-3 right-3 p-1.5 bg-white hover:bg-black hover:text-white border-2 border-black shadow-[2px_2px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 transition-all"
           title="Batal"
         >
           <X className="w-4 h-4" />
         </button>
 
-        {/* Warning Icon Badge */}
-        <div className="w-14 h-14 mx-auto mb-4 bg-[#FF6B9D] border-3 border-black shadow-[3px_3px_0px_#000] flex items-center justify-center transform -rotate-3">
-          <RotateCcw className="w-7 h-7 text-black" />
+        {/* Warning Icon Badge with Wobble / Bounce */}
+        <div className="w-16 h-16 mx-auto mb-4 bg-[#FF6B9D] border-3 border-black shadow-[4px_4px_0px_#000] flex items-center justify-center transform -rotate-3 animate-wobble-once">
+          <RotateCcw className="w-8 h-8 text-black" />
         </div>
 
         {/* Heading */}
@@ -61,26 +61,25 @@ export const ConfirmResetModal: React.FC<ConfirmResetModalProps> = ({
           )}
         </p>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2 border-t-2 border-black">
+        {/* Buttons Action with pop hover */}
+        <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => {
               sound.playClick();
               onClose();
             }}
-            className="w-full sm:w-1/2 py-2.5 px-4 text-xs font-mono font-black uppercase bg-white hover:bg-gray-100 text-black border-2 border-black shadow-[2px_2px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 transition-all"
+            className="flex-1 py-3 bg-white hover:bg-gray-100 text-black font-mono font-black text-xs uppercase border-2 border-black shadow-[3px_3px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 transition-all"
           >
             BATAL
           </button>
-
           <button
             type="button"
             onClick={handleConfirm}
-            className="w-full sm:w-1/2 py-2.5 px-4 text-xs font-mono font-black uppercase bg-[#FF6B9D] hover:bg-[#ff85af] text-black border-3 border-black shadow-[3px_3px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 transition-all flex items-center justify-center gap-1.5"
+            className="flex-1 py-3 bg-[#FF6B9D] hover:bg-[#ff85af] text-black font-mono font-black text-xs uppercase border-2 border-black shadow-[3px_3px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 transition-all flex items-center justify-center gap-1.5"
           >
-            <RotateCcw className="w-4 h-4" />
-            <span>YA, RESET (0/5)</span>
+            <Check className="w-4 h-4" />
+            <span>YA, RESET SEMUA</span>
           </button>
         </div>
       </div>
